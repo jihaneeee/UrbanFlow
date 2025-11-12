@@ -1,0 +1,27 @@
+# Ticket Service Guide
+TICKET_SERVICE_GUIDE.md
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Build outputs
+target/
+build/
+out/
+*.class
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
