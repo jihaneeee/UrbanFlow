@@ -1,0 +1,69 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: urbanflow-tickets-db
+    environment:
+      POSTGRES_DB: urbanflow_tickets
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - urbanflow-network
+    command: postgres -c 'password_encryption=scram-sha-256'
+    healthcheck:
+      test: ["CMD-SHELL", "PGPASSWORD=postgres123 pg_isready -U postgres -d urbanflow_tickets"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: urbanflow-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - urbanflow-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ticket-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: urbanflow-ticket-service
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      RABBITMQ_HOST: rabbitmq
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8082:8082"
+    networks:
+      - urbanflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  urbanflow-network:
+    driver: bridge

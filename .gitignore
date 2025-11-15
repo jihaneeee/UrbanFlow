@@ -2,7 +2,7 @@
 TICKET_SERVICE_GUIDE.md
 
 # IDE
-.idea/
+
 .vscode/
 *.iml
 *.iws
